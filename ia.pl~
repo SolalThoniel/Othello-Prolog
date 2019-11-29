@@ -23,11 +23,6 @@ winner(Board, Player1, Player2) :- endGame(Board, Player1, Player2),
  countPlayer(Player2, Board, List, C2),
  C1 > C2.
 
-%%% Predicate that checks if this is a draw
-winner(Board, Player1, Player2) :- endGame(Board, Player1, Player2),
- countPlayer(Player1, Board, List, C1),
- countPlayer(Player2, Board, List, C2),
- C1 == C2.
 
 %%%% Recursive predicate that checks if all the elements of the List (a board)
 %%%% are instanciated: true e.g. for [x,x,o,o,x,o,x,x,o] false for [x,x,o,o,_G125,o,x,x,o]
