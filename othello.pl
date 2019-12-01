@@ -11,8 +11,8 @@ gameover('Draw') :- board(Board), isBoardFull(Board). % the Board is fully insta
 %%%% Test if a Board is a winning configuration for the player P.
 %winner(Board, P) :- false % No moves are possible for both players
 
-%%%% Recursive predicate that checks if all the elements of the List (a board)
-%%%% are instanciated: true e.g. for [x,x,o,o,x,o,x,x,o] false for [x,x,o,o,_G125,o,x,x,o]
+%%%% Recursive predicate that checks if all the elements of the List (a board) 
+
 isBoardFull([]).
 isBoardFull([H|T]):- nonvar(H), isBoardFull(T).
 %%%% Artificial intelligence: choose in a Board the index to play for Player (_)
@@ -54,38 +54,36 @@ play(Player):- write('New turn for:'), writeln(Player),
  menuJouerColonne,
  read(Colonne),
  convertTab(Colonne, Ligne, Move),
- ia(Board, Move, Player, Number), % ask the AI for a move, that is, an index for the Player
+% ia(Board, Move, Player, Number), % ask the AI for a move, that is, an index for the Player
  playMove(Board,Move,NewBoard,Player), % Play the move and get the result in a new Board
  applyIt(Board, NewBoard), % Remove the old board from the KB and store the new one
  changePlayer(Player,NextPlayer), % Change the player before next turn
  play(NextPlayer). % next turn!
 
 %%%% Play a Move, the new Board will be the same, but one value will be instanciated with the Move
-playMove(Board,Move,NewBoard,Player) :- Move=[Emplacement|Directions], placePiece(Board,  Emplacement, BoardTemp, Player), retournerPieces(BoardTemp, Emplacement, Directions, NewBoard, Player).
-placePiece(Board, Emplacement, NewBoard, Player) :- Board = NewBoard, nth0(Emplacement,NewBoard,Player).
-placePiece(Board, Emplacement, BoardFinal, Player) :- Board = NewBoard, not(nth0(Emplacement,NewBoard,Player)), replace(NewBoard, Emplacement, Player, BoardFinal) .
+ playMove(Board, [Emplacement|Directions],NewBoard,Player) :- placePiece(Board,  Emplacement, BoardTemp, Player), 
+            retournerPieces(BoardTemp, Emplacement, Directions, NewBoard, Player).
+ placePiece(Board, Emplacement, BoardFinal, Player) :- Board = NewBoard, not(nth0(Emplacement,NewBoard,Player)), 
+            replace(NewBoard, Emplacement, Player, BoardFinal) .
 
-                                                                                            replace([_|T], 0, X, [X|T]).
-replace([H|T], I, X, [H|R]):- I > -1, NI is I-1, replace(T, NI, X, R), !.
-replace(L, _, _, L).
+ replace([_|T], 0, X, [X|T]).
+ replace([H|T], I, X, [H|R]):- I > -1, NI is I-1, replace(T, NI, X, R), !.
+ replace(L, _, _, L).
 
-retournerPieces(Board, Emplacement, [], NewBoard,Player) :- Board=NewBoard, !.
-retournerPieces(Board, Emplacement, Directions, NewBoard, Player) :-
- Directions = [Direction|Reste],
- retournerPiecesDirection(Board, Emplacement, Direction, BoardTemp, Player),
- retournerPieces(BoardTemp, Emplacement, Reste, NewBoard, Player).
+ retournerPieces(Board, Emplacement, [], NewBoard,Player) :- Board=NewBoard, !.
+ retournerPieces(Board, Emplacement, Directions, NewBoard, Player) :- Directions = [Direction|Reste],
+           retournerPiecesDirection(Board, Emplacement, Direction, BoardTemp, Player),
+           retournerPieces(BoardTemp, Emplacement, Reste, NewBoard, Player).
 
-retournerPiecesDirection(Board, Emplacement, Direction, Board, Player):-
- Nemplacement is Emplacement+Direction,
- nth0(Nemplacement, Board, Valeur), Valeur == Player, !.
-retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemplacement is Emplacement+Direction,
- nth0(Nemplacement, Board, Valeur), Valeur \==Player, placePiece(Board, Nemplacement, BoardTemp, Player),  retournerPiecesDirection(BoardTemp, Nemplacement, Direction, NewBoard, Player).
+ retournerPiecesDirection(Board, Emplacement, Direction, Board, Player):- Nemplacement is Emplacement+Direction, 
+           nth0(Nemplacement, Board, Valeur), Valeur == Player, !.
+ retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemplacement is Emplacement+Direction,
+           nth0(Nemplacement, Board, Valeur), Valeur \==Player, placePiece(Board, Nemplacement, BoardTemp, Player),  
+           retournerPiecesDirection(BoardTemp, Nemplacement, Direction, NewBoard, Player).
 
 
-oppose(Player, Oppose) :-
- Player=='x', Oppose=='o'.
-oppose(Player, Oppose) :-
- Player=='o', Oppose=='x'.
+oppose(Player, Oppose) :- Player=='x', Oppose=='o'.
+oppose(Player, Oppose) :- Player=='o', Oppose=='x'.
 
 %%%% Remove old board/save new on in the knowledge base
 applyIt(Board,NewBoard) :- retract(board(Board)), assert(board(NewBoard)).
@@ -127,8 +125,8 @@ displayBoard:-
 init(C, D) :- C == 1, length(Board,64) , assert(board(Board)), playMove(Board,27,NewBoard,'o'), playMove(Board,36,NewBoard,'o'), playMove(Board,28,NewBoard,'x'), playMove(Board,35, NewBoard,'x'),applyIt(Board,NewBoard), play('x').
 init(C, D) :- C == 2, length(Board,64) , assert(board(Board)), playMove(Board,27,NewBoard,'o'), playMove(Board,36,NewBoard,'o'), playMove(Board,28,NewBoard,'x'), playMove(Board,35, NewBoard,'x'),applyIt(Board,NewBoard), play('x').
 
-initBoard(C, D) :- C == 1, length(Board,64) , assert(board(Board)), placePiece(Board,27,NewBoard,'o'), placePiece(Board,36,NewBoard,'o'), placePiece(Board,28,NewBoard,'x'), placePiece(Board,35, NewBoard,'x'),applyIt(Board,NewBoard),  displayBoard.
-initBoard(C, D) :- C == 2, length(Board,64) , assert(board(Board)), placePiece(Board,27,NewBoard,'o'), placePiece(Board,36,NewBoard,'o'), placePiece(Board,28,NewBoard,'x'), placePiece(Board,35, NewBoard,'x'),applyIt(Board,NewBoard), displayBoard.
+initBoard(C, D) :- C == 1, length(Board,64) , assert(board(Board)), placePiece(Board,27,NewBoard,'o'), placePiece(Board,36,NewBoard,'o'), placePiece(Board,28,NewBoard,'x'), placePiece(Board,35, NewBoard,'x'), applyIt(Board,NewBoard),  play('x').
+initBoard(C, D) :- C == 2, length(Board,64) , assert(board(Board)), placePiece(Board,27,NewBoard,'o'), placePiece(Board,36,NewBoard,'o'), placePiece(Board,28,NewBoard,'x'), placePiece(Board,35, NewBoard,'x'), applyIt(Board,NewBoard), play('x').
 
 
 %%%%% Menu
@@ -137,4 +135,4 @@ menuJouerColonne :- writeln("Selectionner la colonne que vous souhaitez jouer").
 menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 
 %%%%% Start the menu before playing
-start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur : ") , menuPlayer, read(C), writeln("Selectionner le deuxiÃ¨me joueur : "), menuPlayer, read(D), init(C, D).
+start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur : ") , menuPlayer, read(C), writeln("Selectionner le deuxiÃ¨me joueur : "), menuPlayer, read(D), initBoard(C, D).
