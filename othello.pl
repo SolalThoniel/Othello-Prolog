@@ -63,6 +63,7 @@ play(Player):- write('New turn for:'), writeln(Player),
 %%%% Play a Move, the new Board will be the same, but one value will be instanciated with the Move
  playMove(Board, [Emplacement|Directions],NewBoard,Player) :- placePiece(Board,  Emplacement, BoardTemp, Player), 
             retournerPieces(BoardTemp, Emplacement, Directions, NewBoard, Player).
+ placePiece(Board, Emplacement, NewBoard, Player) :- Board = NewBoard, nth0(Emplacement,NewBoard,Player), !.
  placePiece(Board, Emplacement, BoardFinal, Player) :- Board = NewBoard, not(nth0(Emplacement,NewBoard,Player)), 
             replace(NewBoard, Emplacement, Player, BoardFinal) .
 
