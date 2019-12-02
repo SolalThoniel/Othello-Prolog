@@ -1,8 +1,10 @@
 
 
-choix_Mouvement(Board, Player, Mouvement) :-
+choix_Mouvement(Board, Player, MouvementDirections) :-
 	trouver_Mouvements(Board, Player, MouvList),
-	evaluer_Mouvements(Board, Player, MouvList, Mouvement).
+	evaluer_Mouvements(Board, Player, MouvList, Mouvement),
+	directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
+	
 
 %Le once(length) force la list à choisir une taille et elimine les elements inconnu qui pourraits etre solution.
 trouver_Mouvements(Board, Player, MouvList) :- once(recup_Mouv_possible(Board,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64], Player, MouvList)), once(length(MouvList, Taille)).
@@ -20,19 +22,18 @@ ajout_Mouv_possible(Board, Mouv, Player, MouvList).
 
 
 %on teste les parcours dans les 8 directions
-test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, -9).
-test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, -8).
-test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, -7).
-test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, -1).
-test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, 1).
-test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, 7).
-test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, 8).
-test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, 9).
+test_Mouv_possible(Board, Mouv, Player, MouvList) :- test_premier_voisin(Board, Mouv, Player, MouvList, -9),
+test_premier_voisin(Board, Mouv, Player, MouvList, -8), test_premier_voisin(Board, Mouv, Player, MouvList, -7),
+test_premier_voisin(Board, Mouv, Player, MouvList, -1), test_premier_voisin(Board, Mouv, Player, MouvList, 1),
+test_premier_voisin(Board, Mouv, Player, MouvList, 7), test_premier_voisin(Board, Mouv, Player, MouvList, 8),
+test_premier_voisin(Board, Mouv, Player, MouvList, 9).
 
 
 %On regarde le premier voisin de la case du mouvement avant de lancer la recursion.
 test_premier_voisin(Board, Mouv, Player, MouvList, Dir) :- nonSortis(Mouv, Dir), NouvPos is Mouv + Dir,
 nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase\=Player, test_voisin_suivant(Board, NouvPos, Mouv, Player, MouvList, Dir).
+
+test_premier_voisin(Board, Mouv, Player, MouvList, Dir).
 
 
 %Sortie de la recursion en ayant trouve un mouvement
@@ -59,6 +60,44 @@ nonSortis(Mouv, Dir) :- Dir = 8, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=6
 nonSortis(Mouv, Dir) :- Dir = 9, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=61, Mouv\=62, Mouv\=63, Mouv\=64, Mouv\=8, Mouv\=16, Mouv\=24, Mouv\=32, Mouv\=40, Mouv\=48, Mouv\=56.
 
 
+
+
 %Prend le premier mouvement possible
 evaluer_Mouvements(Board, Player, [H|T], H).
+
+
+
+
+%Recupere les directions ou des pions vont etre retournes pour le mouvement
+directions_Mouvement(Board, Player, Mouvement, MouvementDirections) :- once(tests_directions(Board, Player, Mouvement, Directions)), once(length(Directions, Taille)), ajouter_Tete(Mouvement, Directions, MouvementDirections).
+
+ajouter_Tete(Tete, Liste, [Tete|Liste]).
+
+tests_directions(Board, Player, Mouvement, Directions) :- test_premier_voisin_dir(Board, Player, Mouvement, Directions, -9),
+test_premier_voisin_dir(Board, Player, Mouvement, Directions, -8), test_premier_voisin_dir(Board, Player, Mouvement, Directions, -7),
+test_premier_voisin_dir(Board, Player, Mouvement, Directions, -1), test_premier_voisin_dir(Board, Player, Mouvement, Directions, 1),
+test_premier_voisin_dir(Board, Player, Mouvement, Directions, 7), test_premier_voisin_dir(Board, Player, Mouvement, Directions, 8),
+test_premier_voisin_dir(Board, Player, Mouvement, Directions, 9).
+
+
+%On regarde le premier voisin de la case du mouvement avant de lancer la recursion.
+test_premier_voisin_dir(Board, Player, Mouvement, Directions, Dir) :- nonSortis(Mouvement, Dir), NouvPos is Mouvement + Dir,
+nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase\=Player, test_voisin_suivant_dir(Board, Player, NouvPos, Directions, Dir).
+
+test_premier_voisin_dir(Board, Player, Mouvement, Directions, Dir).
+
+
+%Sortie de la recursion en ayant trouve un mouvement
+test_voisin_suivant_dir(Board, Player, Mouvement, Directions, Dir) :- nonSortis(Mouvement, Dir), NouvPos is Mouvement + Dir,
+nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase==Player, member(Dir, Directions).
+
+%Sortie de la recursion sans avoir trouve de mouvement
+test_voisin_suivant_dir(Board, Player, Mouvement, Directions, Dir) :- (not(nonSortis(Mouvement, Dir))); ( NouvPos is Mouvement + Dir,
+nth1(NouvPos, Board, NouvCase), NouvCase=='v' ).
+
+%On continue la recursion
+test_voisin_suivant_dir(Board, Player, Mouvement, Directions, Dir) :- nonSortis(Mouvement, Dir), NouvPos is Mouvement + Dir,
+nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase\=Player, test_voisin_suivant_dir(Board, Player, NouvPos, Directions, Dir).
+
+
 
