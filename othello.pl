@@ -72,6 +72,7 @@ applyIt(Board,NewBoard) :- retract(board(Board)), assert(board(NewBoard)).
 changePlayer('x','o').
 changePlayer('o','x').
 
+convertTab(Colonne, Ligne, Result) :- Result is ((Ligne-1)*8 + Colonne).
 
 %%%% Print the value of the board at index N:
 % if its a variable, print ? and x or o otherwise.
