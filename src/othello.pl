@@ -31,13 +31,11 @@ write('New turn for:'), writeln(Player),
 board(Board), % instanciate the board from the knowledge base
 displayBoard, % print it
 
-%Demande un mouvement au joueur humain jusqu'a ce qu il soit possible
-demandeMouv(Board, Player, Move),
+trouver_Mouvements(Board, Player, MouvList),
+test_mouv_possible(Board, Player, MouvList, MouvementDirections),
 
-directions_Mouvement(Board, Player, Move, MouvementDirections),
-write(MouvementDirections),
-playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
-applyIt(Board, NewBoard), % Remove the old board from the KB and store the new one
+writeln(MouvementDirections),
+faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player, NextPlayer), % Change the player before next turn
 play(NextPlayer, TabPlayerType). % next turn!
 
@@ -49,22 +47,29 @@ write('New turn for:'), writeln(Player),
 board(Board), % instanciate the board from the knowledge base
 displayBoard, % print it
 choix_Mouvement(Board, Player, MouvementDirections),
-write(MouvementDirections),
+writeln(MouvementDirections),
 faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player,NextPlayer), % Change the player before next turn
 play(NextPlayer,TabPlayerType). % next turn!
 
 %Demande un mouvement au joueur humain
-demandeMouv(Board, Player, Move) :- menuJouerLigne,
+demandeMouv(Board, Player, MouvList, Move) :- menuJouerLigne,
 read(Ligne),
 menuJouerColonne,
 read(Colonne),
 convertTab(Colonne, Ligne, Move),
-trouver_Mouvements(Board, Player, MouvList),
 member(Move, MouvList).
 
 demandeMouv(Board, Player, Move) :- writeln("Desole votre mouvement n'est pas possible, veuillez en choisir un autre"),
 demandeMouv(Board, Player, Move).
+
+
+%Teste si un mouvement est possible
+test_mouv_possible(Board, Player, [], MouvementDirections).
+
+test_mouv_possible(Board, Player, MouvList, MouvementDirections) :- demandeMouv(Board, Player, MouvList, Move), %Demande un mouvement au joueur humain jusqu'a ce qu il soit possible
+directions_Mouvement(Board, Player, Move, MouvementDirections).
+
 
 %Applique le mouvement si il existe
 faire_mouvement(Board,[],Player) :- writeln("Desole vous ne pouvez pas jouer, vous passez votre tour.").
