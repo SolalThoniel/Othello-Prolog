@@ -50,8 +50,7 @@ board(Board), % instanciate the board from the knowledge base
 displayBoard, % print it
 choix_Mouvement(Board, Player, MouvementDirections),
 write(MouvementDirections),
-playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
-applyIt(Board, NewBoard), % Remove the old board from the KB and store the new one
+faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player,NextPlayer), % Change the player before next turn
 play(NextPlayer,TabPlayerType). % next turn!
 
@@ -66,6 +65,12 @@ member(Move, MouvList).
 
 demandeMouv(Board, Player, Move) :- writeln("Desole votre mouvement n'est pas possible, veuillez en choisir un autre"),
 demandeMouv(Board, Player, Move).
+
+%Applique le mouvement si il existe
+faire_mouvement(Board,[],Player) :- writeln("Desole vous ne pouvez pas jouer, vous passez votre tour.").
+
+faire_mouvement(Board,MouvementDirections,Player) :- playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
+applyIt(Board, NewBoard). % Remove the old board from the KB and store the new one.
 
 
 %Play a Move, the new Board will be the same, but one value will be instanciated with the Move
