@@ -60,8 +60,8 @@ read(Colonne),
 convertTab(Colonne, Ligne, Move),
 member(Move, MouvList).
 
-demandeMouv(Board, Player, Move) :- writeln("Desole votre mouvement n'est pas possible, veuillez en choisir un autre"),
-demandeMouv(Board, Player, Move).
+demandeMouv(Board, Player, MouvList, Move) :- writeln("Desole votre mouvement n'est pas possible, veuillez en choisir un autre"),
+demandeMouv(Board, Player, MouvList, Move).
 
 
 %Teste si un mouvement est possible
@@ -146,4 +146,4 @@ menuJouerColonne :- writeln("Selectionner la colonne que vous souhaitez jouer").
 menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 
 %%%%% Start the menu before playing
-start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur : ") , menuPlayer, read(C), writeln("Selectionner le deuxieme joueur : "), menuPlayer, read(D), initBoard(C, D).
+start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur, il jouera les x : ") , menuPlayer, read(C), writeln("Selectionner le deuxieme joueur, il jouera les o : "), menuPlayer, read(D), initBoard(C, D).
