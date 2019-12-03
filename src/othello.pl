@@ -20,53 +20,86 @@ isBoardFull([]).
 isBoardFull([H|T]):- nonvar(H), isBoardFull(T).
 
 
-% The game is over, we use a cut to stop the proof search, and display the winner/board.
-play(_):- gameover(Winner), !, write('Game is Over. Winner: '), writeln(Winner), displayBoard.
+% The game is over, we use a cut to stop the proof search, and display the winner-board.
+play(_,_):- gameover(Winner), !, write('Game is Over. Winner: '), writeln(Winner), displayBoard.
 
-% The game is not over, we play the next turn
-play(Player):- write('New turn for:'), writeln(Player),
- board(Board), % instanciate the board from the knowledge base
- displayBoard, % print it
- menuJouerLigne,
- read(Ligne),
- menuJouerColonne,
- read(Colonne),
- convertTab(Colonne, Ligne, Move),
- choix_Mouvement(Board, Player, MouvementDirections),
- write(MouvementDirections),
- playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
- applyIt(Board, NewBoard), % Remove the old board from the KB and store the new one
- changePlayer(Player,NextPlayer), % Change the player before next turn
- play(NextPlayer). % next turn!
 
-%%%% Play a Move, the new Board will be the same, but one value will be instanciated with the Move
- playMove(Board, [Emplacement|Directions],NewBoard,Player) :- placePiece(Board,  Emplacement, BoardTemp, Player), 
-            retournerPieces(BoardTemp, Emplacement, Directions, NewBoard, Player).
- placePiece(Board, Emplacement, NewBoard, Player) :- Board = NewBoard, nth1(Emplacement,NewBoard,Player), !.
- placePiece(Board, Emplacement, BoardFinal, Player) :- Board = NewBoard, not(nth1(Emplacement,NewBoard,Player)), 
-            replace(NewBoard, Emplacement, Player, BoardFinal) .
+%The game is not over, we play the next turn for a human
+play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
+PlayerType == 1,
+write('New turn for:'), writeln(Player),
+board(Board), % instanciate the board from the knowledge base
+displayBoard, % print it
 
- replace([_|T], 1, X, [X|T]).
- replace([H|T], I, X, [H|R]):- I > 0, NI is I-1, replace(T, NI, X, R), !.
- replace(L, _, _, L).
+%Demande un mouvement au joueur humain jusqu'a ce qu il soit possible
+demandeMouv(Board, Player, Move),
 
- retournerPieces(Board, Emplacement, [], NewBoard,Player) :- Board=NewBoard, !.
- retournerPieces(Board, Emplacement, [Direction|Reste], NewBoard, Player) :- 
-           retournerPiecesDirection(Board, Emplacement, Direction, BoardTemp, Player),
-           retournerPieces(BoardTemp, Emplacement, Reste, NewBoard, Player).
+directions_Mouvement(Board, Player, Move, MouvementDirections),
+write(MouvementDirections),
+playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
+applyIt(Board, NewBoard), % Remove the old board from the KB and store the new one
+changePlayer(Player, NextPlayer), % Change the player before next turn
+play(NextPlayer, TabPlayerType). % next turn!
 
- retournerPiecesDirection(Board, Emplacement, Direction, Board, Player):- Nemplacement is Emplacement+Direction, 
-           nth1(Nemplacement, Board, Valeur), Valeur == Player, !.
- retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemplacement is Emplacement+Direction,
-           nth1(Nemplacement, Board, Valeur), Valeur \== Player, placePiece(Board, Nemplacement, BoardTemp, Player),  
-           retournerPiecesDirection(BoardTemp, Nemplacement, Direction, NewBoard, Player).
+
+%The game is not over, we play the next turn for an IA
+play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
+PlayerType == 2,
+write('New turn for:'), writeln(Player),
+board(Board), % instanciate the board from the knowledge base
+displayBoard, % print it
+choix_Mouvement(Board, Player, MouvementDirections),
+write(MouvementDirections),
+playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
+applyIt(Board, NewBoard), % Remove the old board from the KB and store the new one
+changePlayer(Player,NextPlayer), % Change the player before next turn
+play(NextPlayer,TabPlayerType). % next turn!
+
+%Demande un mouvement au joueur humain
+demandeMouv(Board, Player, Move) :- menuJouerLigne,
+read(Ligne),
+menuJouerColonne,
+read(Colonne),
+convertTab(Colonne, Ligne, Move),
+trouver_Mouvements(Board, Player, MouvList),
+member(Move, MouvList).
+
+demandeMouv(Board, Player, Move) :- writeln("Desole votre mouvement n'est pas possible, veuillez en choisir un autre"),
+demandeMouv(Board, Player, Move).
+
+
+%Play a Move, the new Board will be the same, but one value will be instanciated with the Move
+playMove(Board, [Emplacement|Directions],NewBoard,Player) :- placePiece(Board,  Emplacement, BoardTemp, Player), 
+		retournerPieces(BoardTemp, Emplacement, Directions, NewBoard, Player).
+placePiece(Board, Emplacement, NewBoard, Player) :- Board = NewBoard, nth1(Emplacement,NewBoard,Player), !.
+placePiece(Board, Emplacement, BoardFinal, Player) :- Board = NewBoard, not(nth1(Emplacement,NewBoard,Player)), 
+		replace(NewBoard, Emplacement, Player, BoardFinal) .
+
+replace([_|T], 1, X, [X|T]).
+replace([H|T], I, X, [H|R]):- I > 0, NI is I-1, replace(T, NI, X, R), !.
+replace(L, _, _, L).
+
+retournerPieces(Board, Emplacement, [], NewBoard,Player) :- Board=NewBoard, !.
+retournerPieces(Board, Emplacement, [Direction|Reste], NewBoard, Player) :- 
+	   retournerPiecesDirection(Board, Emplacement, Direction, BoardTemp, Player),
+	   retournerPieces(BoardTemp, Emplacement, Reste, NewBoard, Player).
+
+retournerPiecesDirection(Board, Emplacement, Direction, Board, Player):- Nemplacement is Emplacement+Direction, 
+	   nth1(Nemplacement, Board, Valeur), Valeur == Player, !.
+retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemplacement is Emplacement+Direction,
+	   nth1(Nemplacement, Board, Valeur), Valeur \== Player, placePiece(Board, Nemplacement, BoardTemp, Player),  
+	   retournerPiecesDirection(BoardTemp, Nemplacement, Direction, NewBoard, Player).
 
 
 oppose(Player, Oppose) :- Player=='x', Oppose=='o'.
 oppose(Player, Oppose) :- Player=='o', Oppose=='x'.
 
-%%%% Remove old board/save new on in the knowledge base
+%Remove old board-save new on in the knowledge base
 applyIt(Board,NewBoard) :- retract(board(Board)), assert(board(NewBoard)).
+
+%renvoie le type de joueur, 1 = humain, 2 = IA
+getPlayerType(Player, TabPlayerType, PlayerType) :- Player == 'x', nth1(2, TabPlayerType, PlayerType).
+getPlayerType(Player, TabPlayerType, PlayerType) :- Player == 'o', nth1(4, TabPlayerType, PlayerType).
 
 %%%% Predicate to get the next player
 changePlayer('x','o').
@@ -94,8 +127,7 @@ displayBoard:-
 
 %%%%% Start the game!
 
-initBoard(C, D) :- C == 1, length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard),  play('x').
-initBoard(C, D) :- C == 2, length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x').
+initBoard(C, D) :- length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x', ['x', C, 'o', D]).
 
 
 %%%%% Menu
