@@ -18,31 +18,6 @@ gameover('Draw') :- board(Board), isBoardFull(Board). % the Board is fully insta
 
 isBoardFull([]).
 isBoardFull([H|T]):- nonvar(H), isBoardFull(T).
-%%%% Artificial intelligence: choose in a Board the index to play for Player (_)
-%%%% This AI plays randomly and does not care who is playing: it chooses a free position
-%%%% in the Board (an element which is an free variable).
-ia(Board, Index, Player, Number) :- returnedCases(Board, Index, Player, Number, 8), writeln(Number).
-%%%% Recursive predicate for playing the game.
-
-%%%% Compte le nombre de case retournees, on va itÃ©rer Index pour qu'il fasse les 8 cases autour
-%%%% Index : +8, -8, +1, -1, -9, -7, +9, +7
-returnedCases(Board, Index, Player, Number, Case) :- Case == 8, returnedCases(Board, Index, Player, Number, -8), Somme is Index + Case, Somme > -1, Somme < 65, Result is 0, nth1(Somme, Board, Elem), returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case), Num is Number, Number is Num + Result.
-returnedCases(Board, Index, Player, Number, Case) :- Case == -8, returnedCases(Board, Index, Player, Number, 1), Somme is Index + Case, Somme > -1, Somme < 65, Result is 0, nth1(Somme, Board, Elem), returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case), Num is Number, Number is Num + Result.
-returnedCases(Board, Index, Player, Number, Case) :- Case == 1, returnedCases(Board, Index, Player, Number, -1), Somme is Index + Case, Somme > -1, Somme < 65, Result is 0, nth1(Somme, Board, Elem), returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case),  Num is Number, Number is Num + Result.
-returnedCases(Board, Index, Player, Number, Case) :- Case == -1, returnedCases(Board, Index, Player, Number, -9), Somme is Index + Case, Somme > -1, Somme < 65, Result is 0, nth1(Somme, Board, Elem), returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case), Num is Number, Number is Num + Result.
-returnedCases(Board, Index, Player, Number, Case) :- Case == -9, returnedCases(Board, Index, Player, Number, -7), Somme is Index + Case, Somme > -1, Somme < 65, Result is 0, nth1(Somme, Board, Elem), returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case), Num is Number, Number is Num + Result.
-returnedCases(Board, Index, Player, Number, Case) :- Case == -7, returnedCases(Board, Index, Player, Number, 9), Somme is Index + Case, Somme > -1, Somme < 65, Result is 0, nth1(Somme, Board, Elem), returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case), Num is Number, Number is Num + Result.
-returnedCases(Board, Index, Player, Number, Case) :- Case == 9, returnedCases(Board, Index, Player, Number, 7), Somme is Index + Case, Somme > -1, Somme < 65, Result is 0, nth1(Somme, Board, Elem), returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case), Num is Number, Number is Num + Result.
-returnedCases(Board, Index, Player, Number, Case) :- Case == 7, Somme is Index + Case, Somme > -1, Somme < 65,  Result is 0, nth1(Somme, Board, Elem), returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case), Number is Result.
-
-%%%Calculer sur une direction le nombre de jetons retournÃ©s
-
-returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case):- Elem == Player, var(Result), Result is 0, !.
-returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case):- Elem == Player, !.
-returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case):- Elem \== 'o', Elem\=='x', Result is 0, !.
-returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case):- Elem \== Player, Index is Somme + Case, Index < 0, Result is 0, !.
-returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case):- Elem \== Player, Index is Somme + Case, Index > 64, Result is 0, !.
-returnedCasesOnADirection(Board, Player, Elem, Result, Somme, Case):- Elem \== Player, Addition is Result + 1, Index is Somme + Case, Index > -1, Index < 65,  nth1(Index, Board, Element), returnedCasesOnADirection(Board, Player, Element, Addition, Index, Case), Result is Addition.
 
 
 % The game is over, we use a cut to stop the proof search, and display the winner/board.
@@ -59,8 +34,6 @@ play(Player):- write('New turn for:'), writeln(Player),
  convertTab(Colonne, Ligne, Move),
  choix_Mouvement(Board, Player, MouvementDirections),
  write(MouvementDirections),
-% append([Move],  MouvementDirections, Y),
-% ia(Board, Move, Player, Number), % ask the AI for a move, that is, an index for the Player
  playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
  applyIt(Board, NewBoard), % Remove the old board from the KB and store the new one
  changePlayer(Player,NextPlayer), % Change the player before next turn
@@ -99,16 +72,6 @@ applyIt(Board,NewBoard) :- retract(board(Board)), assert(board(NewBoard)).
 changePlayer('x','o').
 changePlayer('o','x').
 
-%%%% Conversion
-convertLetter(Letter, Num) :- Letter == 'A', Num = 1.
-convertLetter(Letter, Num) :- Letter == 'B', Num = 2.
-convertLetter(Letter, Num) :- Letter == 'C', Num = 3.
-convertLetter(Letter, Num) :- Letter == 'D', Num = 4.
-convertLetter(Letter, Num) :- Letter == 'E', Num = 5.
-convertLetter(Letter, Num) :- Letter == 'F', Num = 6.
-convertLetter(Letter, Num) :- Letter == 'G', Num = 7.
-convertLetter(Letter, Num) :- Letter == 'H', Num = 8.
-convertTab(Colonne, Ligne, Result) :- Result is ((Ligne-1)*8+Colonne) -1.
 
 %%%% Print the value of the board at index N:
 % if its a variable, print ? and x or o otherwise.
