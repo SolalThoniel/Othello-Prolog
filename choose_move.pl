@@ -1,5 +1,3 @@
-
-
 choix_Mouvement(Board, Player, MouvementDirections) :-
 	trouver_Mouvements(Board, Player, MouvList),
 	evaluer_Mouvements(Board, Player, MouvList, Mouvement),
@@ -15,7 +13,7 @@ recup_Mouv_possible(Board, [H|T], Player, MouvList) :- ajout_Mouv_possible(Board
 
 
 %Si la case testee est vide alors cela peut etre un coup possible
-ajout_Mouv_possible(Board, Mouv, Player, MouvList) :- nth1(Mouv, Board, MouvCase), MouvCase=='v', test_Mouv_possible(Board, Mouv, Player, MouvList).
+ajout_Mouv_possible(Board, Mouv, Player, MouvList) :- nth1(Mouv, Board, MouvCase), var(MouvCase), test_Mouv_possible(Board, Mouv, Player, MouvList).
 
 %Si la case testee n'est pas vide, alors elle n'est pas exploitable pour un coup
 ajout_Mouv_possible(Board, Mouv, Player, MouvList).
@@ -31,22 +29,22 @@ test_premier_voisin(Board, Mouv, Player, MouvList, 9).
 
 %On regarde le premier voisin de la case du mouvement avant de lancer la recursion.
 test_premier_voisin(Board, Mouv, Player, MouvList, Dir) :- nonSortis(Mouv, Dir), NouvPos is Mouv + Dir,
-nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase\=Player, test_voisin_suivant(Board, NouvPos, Mouv, Player, MouvList, Dir).
+nth1(NouvPos, Board, NouvCase), nonvar(NouvCase), NouvCase\=Player, test_voisin_suivant(Board, NouvPos, Mouv, Player, MouvList, Dir).
 
 test_premier_voisin(Board, Mouv, Player, MouvList, Dir).
 
 
 %Sortie de la recursion en ayant trouve un mouvement
 test_voisin_suivant(Board, Mouv, MouvOrigine, Player, MouvList, Dir) :- nonSortis(Mouv, Dir), NouvPos is Mouv + Dir,
-nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase==Player, member(MouvOrigine, MouvList).
+nth1(NouvPos, Board, NouvCase), nonvar(NouvCase), NouvCase==Player, member(MouvOrigine, MouvList).
 
 %Sortie de la recursion sans avoir trouve de mouvement
 test_voisin_suivant(Board, Mouv, MouvOrigine, Player, MouvList, Dir) :- (not(nonSortis(Mouv, Dir))); ( NouvPos is Mouv + Dir,
-nth1(NouvPos, Board, NouvCase), NouvCase=='v' ).
+nth1(NouvPos, Board, NouvCase), var(NouvCase) ).
 
 %On continue la recursion
 test_voisin_suivant(Board, Mouv, MouvOrigine, Player, MouvList, Dir) :- nonSortis(Mouv, Dir), NouvPos is Mouv + Dir,
-nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase\=Player, test_voisin_suivant(Board, NouvPos, MouvOrigine, Player, MouvList, Dir).
+nth1(NouvPos, Board, NouvCase), nonvar(NouvCase), NouvCase\=Player, test_voisin_suivant(Board, NouvPos, MouvOrigine, Player, MouvList, Dir).
 
 
 %Test si on sort du plateau depuis un case vers une direction choisie
@@ -82,22 +80,22 @@ test_premier_voisin_dir(Board, Player, Mouvement, Directions, 9).
 
 %On regarde le premier voisin de la case du mouvement avant de lancer la recursion.
 test_premier_voisin_dir(Board, Player, Mouvement, Directions, Dir) :- nonSortis(Mouvement, Dir), NouvPos is Mouvement + Dir,
-nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase\=Player, test_voisin_suivant_dir(Board, Player, NouvPos, Directions, Dir).
+nth1(NouvPos, Board, NouvCase), nonvar(NouvCase), NouvCase\=Player, test_voisin_suivant_dir(Board, Player, NouvPos, Directions, Dir).
 
 test_premier_voisin_dir(Board, Player, Mouvement, Directions, Dir).
 
 
 %Sortie de la recursion en ayant trouve un mouvement
 test_voisin_suivant_dir(Board, Player, Mouvement, Directions, Dir) :- nonSortis(Mouvement, Dir), NouvPos is Mouvement + Dir,
-nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase==Player, member(Dir, Directions).
+nth1(NouvPos, Board, NouvCase), nonvar(NouvCase), NouvCase==Player, member(Dir, Directions).
 
 %Sortie de la recursion sans avoir trouve de mouvement
 test_voisin_suivant_dir(Board, Player, Mouvement, Directions, Dir) :- (not(nonSortis(Mouvement, Dir))); ( NouvPos is Mouvement + Dir,
-nth1(NouvPos, Board, NouvCase), NouvCase=='v' ).
+nth1(NouvPos, Board, NouvCase), var(NouvCase) ).
 
 %On continue la recursion
 test_voisin_suivant_dir(Board, Player, Mouvement, Directions, Dir) :- nonSortis(Mouvement, Dir), NouvPos is Mouvement + Dir,
-nth1(NouvPos, Board, NouvCase), NouvCase\='v', NouvCase\=Player, test_voisin_suivant_dir(Board, Player, NouvPos, Directions, Dir).
+nth1(NouvPos, Board, NouvCase), nonvar(NouvCase), NouvCase\=Player, test_voisin_suivant_dir(Board, Player, NouvPos, Directions, Dir).
 
 
 
