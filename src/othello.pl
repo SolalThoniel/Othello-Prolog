@@ -9,43 +9,51 @@
 
 
 %%% Tests if the game is finished %%%
-endGame(Board) :- trouver_Mouvements(Board, 'x', []),
-trouver_Mouvements(Board, 'o', []).
-
-%%% Predicate that counts the number of pawns a player owns
-% eg for countPlayer('x', Board, List, C) with Board =
-% ['x','o','x',C0123] , the value of C is 2.
-countPlayer(Player, Board, List, C) :- bagof(Player, member(Player, Board), List),
- length(List,C).
-
-%%% Predicate that checks if Player1 is the winner
-winner(Board, Player1, Player2, Winner) :-
- countPlayer(Player1, Board, List, C1),
- countPlayer(Player2, Board, List, C2),
- C1 > C2,
- append(Player1, " gagne", Winner).
-
-%%% Predicate that checks if this is a draw
-winner(Board, Player1, Player2, Winner) :-
- countPlayer(Player1, Board, List, C1),
- countPlayer(Player2, Board, List, C2),
- C1 < C2,
- append(Player2, " gagne", Winner).
-
-
-%%% Predicate that checks if this is a draw
-winner(Board, Player1, Player2, Winner) :-
- countPlayer(Player1, Board, List, C1),
- countPlayer(Player2, Board, List, C2),
- C1 == C2,
- Winner='Egalite'.
+endGame(Board) :- trouver_Mouvements(Board, 'x', MouvListPlayer1),
+trouver_Mouvements(Board, 'o', MouvListPlayer2),
+isListEmpty(MouvListPlayer1),
+isListEmpty(MouvListPlayer2).
 
 
 %%% Predicate that checks if a list is empty
 isListEmpty([]).
 
+
+%%% Predicate that counts the number of pawns a player owns
+% eg for countPlayer('x', Board, List, C) with Board =
+% ['x','o','x',C0123] , the value of C is 2.
+countPlayer(Player, Board, C) :- bagof(Player, member(Player, Board), List),
+ length(List,C).
+
+%%% Predicate that checks if Player1 is the winner
+winner(Board, Winner) :-
+ countPlayer('x', Board, C1),
+ countPlayer('o', Board, C2),
+ C1 > C2,
+ string_concat('x', " gagne avec ", Gagnant),
+ string_concat(Gagnant, C1, Gagnant2),
+ string_concat(Gagnant2, " points.", Winner).
+
+%%% Predicate that checks if this is a draw
+winner(Board, Winner) :-
+ countPlayer('x', Board, C1),
+ countPlayer('o', Board, C2),
+ C1 < C2,
+ string_concat('o', " gagne avec ", Gagnant),
+ string_concat(Gagnant, C2, Gagnant2),
+ string_concat(Gagnant2, " points.", Winner).
+
+
+%%% Predicate that checks if this is a draw
+winner(Board, Winner) :-
+ countPlayer('x', Board, C1),
+ countPlayer('o', Board, C2),
+ C1 == C2,
+ Winner='Egalite'.
+
+
 % The game is over, we use a cut to stop the proof search, and display the winner-board.
-play(_,_):- board(Board), endGame(Board), winner(Board,'x', 'o', Winner), !, write('Game is Over.'), writeln(Winner), displayBoard.
+play(_,_):- board(Board), endGame(Board), winner(Board, Winner), !, writeln('Game is Over.'), writeln(Winner), displayBoard.
 
 
 %The game is not over, we play the next turn for a human
