@@ -8,20 +8,44 @@
 :- dynamic board/1.
 
 
-%%%% Test is the game is finished %%%
-%gameover(Winner) :- board(Board), winner(Board,Winner), !. % There exists a winning configuration: We cut!
-gameover('Draw') :- board(Board), isBoardFull(Board). % the Board is fully instanciated (no free variable): Draw.
-%%%% Test if a Board is a winning configuration for the player P.
-%winner(Board, P) :- false % No moves are possible for both players
+%%% Tests if the game is finished %%%
+endGame(Board) :- trouver_Mouvements(Board, 'x', []),
+trouver_Mouvements(Board, 'o', []).
 
-%%%% Recursive predicate that checks if all the elements of the List (a board) 
+%%% Predicate that counts the number of pawns a player owns
+% eg for countPlayer('x', Board, List, C) with Board =
+% ['x','o','x',C0123] , the value of C is 2.
+countPlayer(Player, Board, List, C) :- bagof(Player, member(Player, Board), List),
+ length(List,C).
 
-isBoardFull([]).
-isBoardFull([H|T]):- nonvar(H), isBoardFull(T).
+%%% Predicate that checks if Player1 is the winner
+winner(Board, Player1, Player2, Winner) :-
+ countPlayer(Player1, Board, List, C1),
+ countPlayer(Player2, Board, List, C2),
+ C1 > C2,
+ append(Player1, " gagne", Winner).
 
+%%% Predicate that checks if this is a draw
+winner(Board, Player1, Player2, Winner) :-
+ countPlayer(Player1, Board, List, C1),
+ countPlayer(Player2, Board, List, C2),
+ C1 < C2,
+ append(Player2, " gagne", Winner).
+
+
+%%% Predicate that checks if this is a draw
+winner(Board, Player1, Player2, Winner) :-
+ countPlayer(Player1, Board, List, C1),
+ countPlayer(Player2, Board, List, C2),
+ C1 == C2,
+ Winner='Egalite'.
+
+
+%%% Predicate that checks if a list is empty
+isListEmpty([]).
 
 % The game is over, we use a cut to stop the proof search, and display the winner-board.
-play(_,_):- gameover(Winner), !, write('Game is Over. Winner: '), writeln(Winner), displayBoard.
+play(_,_):- board(Board), endGame(Board), winner(Board,'x', 'o', Winner), !, write('Game is Over.'), writeln(Winner), displayBoard.
 
 
 %The game is not over, we play the next turn for a human
