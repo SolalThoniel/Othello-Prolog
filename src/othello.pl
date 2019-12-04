@@ -8,65 +8,140 @@
 :- dynamic board/1.
 
 
-%%%% Test is the game is finished %%%
-%gameover(Winner) :- board(Board), winner(Board,Winner), !. % There exists a winning configuration: We cut!
-gameover('Draw') :- board(Board), isBoardFull(Board). % the Board is fully instanciated (no free variable): Draw.
-%%%% Test if a Board is a winning configuration for the player P.
-%winner(Board, P) :- false % No moves are possible for both players
-
-%%%% Recursive predicate that checks if all the elements of the List (a board) 
-
-isBoardFull([]).
-isBoardFull([H|T]):- nonvar(H), isBoardFull(T).
+%%% Tests if the game is finished %%%
+endGame(Board) :- trouver_Mouvements(Board, 'x', MouvListPlayer1),
+trouver_Mouvements(Board, 'o', MouvListPlayer2),
+isListEmpty(MouvListPlayer1),
+isListEmpty(MouvListPlayer2).
 
 
-% The game is over, we use a cut to stop the proof search, and display the winner/board.
-play(_):- gameover(Winner), !, write('Game is Over. Winner: '), writeln(Winner), displayBoard.
+%%% Predicate that checks if a list is empty
+isListEmpty([]).
 
-% The game is not over, we play the next turn
-play(Player):- write('New turn for:'), writeln(Player),
- board(Board), % instanciate the board from the knowledge base
- displayBoard, % print it
- menuJouerLigne,
- read(Ligne),
- menuJouerColonne,
- read(Colonne),
- convertTab(Colonne, Ligne, Move),
- choix_Mouvement(Board, Player, MouvementDirections),
- write(MouvementDirections),
- playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
- applyIt(Board, NewBoard), % Remove the old board from the KB and store the new one
- changePlayer(Player,NextPlayer), % Change the player before next turn
- play(NextPlayer). % next turn!
 
-%%%% Play a Move, the new Board will be the same, but one value will be instanciated with the Move
- playMove(Board, [Emplacement|Directions],NewBoard,Player) :- placePiece(Board,  Emplacement, BoardTemp, Player), 
-            retournerPieces(BoardTemp, Emplacement, Directions, NewBoard, Player).
- placePiece(Board, Emplacement, NewBoard, Player) :- Board = NewBoard, nth1(Emplacement,NewBoard,Player), !.
- placePiece(Board, Emplacement, BoardFinal, Player) :- Board = NewBoard, not(nth1(Emplacement,NewBoard,Player)), 
-            replace(NewBoard, Emplacement, Player, BoardFinal) .
+%%% Predicate that counts the number of pawns a player owns
+% eg for countPlayer('x', Board, List, C) with Board =
+% ['x','o','x',C0123] , the value of C is 2.
+countPlayer(Player, Board, C) :- bagof(Player, member(Player, Board), List),
+ length(List,C).
 
- replace([_|T], 1, X, [X|T]).
- replace([H|T], I, X, [H|R]):- I > 0, NI is I-1, replace(T, NI, X, R), !.
- replace(L, _, _, L).
+%%% Predicate that checks if Player1 is the winner
+winner(Board, Winner) :-
+ countPlayer('x', Board, C1),
+ countPlayer('o', Board, C2),
+ C1 > C2,
+ string_concat('x', " gagne avec ", Gagnant),
+ string_concat(Gagnant, C1, Gagnant2),
+ string_concat(Gagnant2, " points.", Winner).
 
- retournerPieces(Board, Emplacement, [], NewBoard,Player) :- Board=NewBoard, !.
- retournerPieces(Board, Emplacement, [Direction|Reste], NewBoard, Player) :- 
-           retournerPiecesDirection(Board, Emplacement, Direction, BoardTemp, Player),
-           retournerPieces(BoardTemp, Emplacement, Reste, NewBoard, Player).
+%%% Predicate that checks if this is a draw
+winner(Board, Winner) :-
+ countPlayer('x', Board, C1),
+ countPlayer('o', Board, C2),
+ C1 < C2,
+ string_concat('o', " gagne avec ", Gagnant),
+ string_concat(Gagnant, C2, Gagnant2),
+ string_concat(Gagnant2, " points.", Winner).
 
- retournerPiecesDirection(Board, Emplacement, Direction, Board, Player):- Nemplacement is Emplacement+Direction, 
-           nth1(Nemplacement, Board, Valeur), Valeur == Player, !.
- retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemplacement is Emplacement+Direction,
-           nth1(Nemplacement, Board, Valeur), Valeur \== Player, placePiece(Board, Nemplacement, BoardTemp, Player),  
-           retournerPiecesDirection(BoardTemp, Nemplacement, Direction, NewBoard, Player).
+
+%%% Predicate that checks if this is a draw
+winner(Board, Winner) :-
+ countPlayer('x', Board, C1),
+ countPlayer('o', Board, C2),
+ C1 == C2,
+ Winner='Egalite'.
+
+
+% The game is over, we use a cut to stop the proof search, and display the winner-board.
+play(_,_):- board(Board), endGame(Board), winner(Board, Winner), !, writeln('Game is Over.'), writeln(Winner), displayBoard.
+
+
+%The game is not over, we play the next turn for a human
+play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
+PlayerType == 1,
+write('New turn for:'), writeln(Player),
+board(Board), % instanciate the board from the knowledge base
+displayBoard, % print it
+
+trouver_Mouvements(Board, Player, MouvList),
+test_mouv_possible(Board, Player, MouvList, MouvementDirections),
+
+writeln(MouvementDirections),
+faire_mouvement(Board,MouvementDirections,Player),
+changePlayer(Player, NextPlayer), % Change the player before next turn
+play(NextPlayer, TabPlayerType). % next turn!
+
+
+%The game is not over, we play the next turn for an IA
+play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
+PlayerType == 2,
+write('New turn for:'), writeln(Player),
+board(Board), % instanciate the board from the knowledge base
+displayBoard, % print it
+choix_Mouvement(Board, Player, MouvementDirections),
+writeln(MouvementDirections),
+faire_mouvement(Board,MouvementDirections,Player),
+changePlayer(Player,NextPlayer), % Change the player before next turn
+play(NextPlayer,TabPlayerType). % next turn!
+
+%Demande un mouvement au joueur humain
+demandeMouv(Board, Player, MouvList, Move) :- menuJouerLigne,
+read(Ligne),
+menuJouerColonne,
+read(Colonne),
+convertTab(Colonne, Ligne, Move),
+member(Move, MouvList).
+
+demandeMouv(Board, Player, MouvList, Move) :- writeln("Desole votre mouvement n'est pas possible, veuillez en choisir un autre"),
+demandeMouv(Board, Player, MouvList, Move).
+
+
+%Teste si un mouvement est possible
+test_mouv_possible(Board, Player, [], MouvementDirections).
+
+test_mouv_possible(Board, Player, MouvList, MouvementDirections) :- demandeMouv(Board, Player, MouvList, Move), %Demande un mouvement au joueur humain jusqu'a ce qu il soit possible
+directions_Mouvement(Board, Player, Move, MouvementDirections).
+
+
+%Applique le mouvement si il existe
+faire_mouvement(Board,[],Player) :- writeln("Desole vous ne pouvez pas jouer, vous passez votre tour.").
+
+faire_mouvement(Board,MouvementDirections,Player) :- playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
+applyIt(Board, NewBoard). % Remove the old board from the KB and store the new one.
+
+
+%Play a Move, the new Board will be the same, but one value will be instanciated with the Move
+playMove(Board, [Emplacement|Directions],NewBoard,Player) :- placePiece(Board,  Emplacement, BoardTemp, Player), 
+		retournerPieces(BoardTemp, Emplacement, Directions, NewBoard, Player).
+placePiece(Board, Emplacement, NewBoard, Player) :- Board = NewBoard, nth1(Emplacement,NewBoard,Player), !.
+placePiece(Board, Emplacement, BoardFinal, Player) :- Board = NewBoard, not(nth1(Emplacement,NewBoard,Player)), 
+		replace(NewBoard, Emplacement, Player, BoardFinal) .
+
+replace([_|T], 1, X, [X|T]).
+replace([H|T], I, X, [H|R]):- I > 0, NI is I-1, replace(T, NI, X, R), !.
+replace(L, _, _, L).
+
+retournerPieces(Board, Emplacement, [], NewBoard,Player) :- Board=NewBoard, !.
+retournerPieces(Board, Emplacement, [Direction|Reste], NewBoard, Player) :- 
+	   retournerPiecesDirection(Board, Emplacement, Direction, BoardTemp, Player),
+	   retournerPieces(BoardTemp, Emplacement, Reste, NewBoard, Player).
+
+retournerPiecesDirection(Board, Emplacement, Direction, Board, Player):- Nemplacement is Emplacement+Direction, 
+	   nth1(Nemplacement, Board, Valeur), Valeur == Player, !.
+retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemplacement is Emplacement+Direction,
+	   nth1(Nemplacement, Board, Valeur), Valeur \== Player, placePiece(Board, Nemplacement, BoardTemp, Player),  
+	   retournerPiecesDirection(BoardTemp, Nemplacement, Direction, NewBoard, Player).
 
 
 oppose(Player, Oppose) :- Player=='x', Oppose=='o'.
 oppose(Player, Oppose) :- Player=='o', Oppose=='x'.
 
-%%%% Remove old board/save new on in the knowledge base
+%Remove old board-save new on in the knowledge base
 applyIt(Board,NewBoard) :- retract(board(Board)), assert(board(NewBoard)).
+
+%renvoie le type de joueur, 1 = humain, 2 = IA
+getPlayerType(Player, TabPlayerType, PlayerType) :- Player == 'x', nth1(2, TabPlayerType, PlayerType).
+getPlayerType(Player, TabPlayerType, PlayerType) :- Player == 'o', nth1(4, TabPlayerType, PlayerType).
 
 %%%% Predicate to get the next player
 changePlayer('x','o').
@@ -94,8 +169,7 @@ displayBoard:-
 
 %%%%% Start the game!
 
-initBoard(C, D) :- C == 1, length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard),  play('x').
-initBoard(C, D) :- C == 2, length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x').
+initBoard(C, D) :- length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x', ['x', C, 'o', D]).
 
 
 %%%%% Menu
@@ -104,4 +178,4 @@ menuJouerColonne :- writeln("Selectionner la colonne que vous souhaitez jouer").
 menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 
 %%%%% Start the menu before playing
-start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur : ") , menuPlayer, read(C), writeln("Selectionner le deuxieme joueur : "), menuPlayer, read(D), initBoard(C, D).
+start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur, il jouera les x : ") , menuPlayer, read(C), writeln("Selectionner le deuxieme joueur, il jouera les o : "), menuPlayer, read(D), initBoard(C, D).
