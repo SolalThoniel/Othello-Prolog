@@ -1,3 +1,8 @@
+:- dynamic compteurActuel/1.  
+:- dynamic meilleurMove/1.  
+:- dynamic compteurMove/1. 
+
+
 choix_Mouvement(Board, Player, PlayerType, MouvementDirections) :-
 	trouver_Mouvements(Board, Player, MouvList),
 	once(choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections)).
@@ -75,14 +80,82 @@ nonSortis(Mouv, Dir) :- Dir = 8, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=6
 nonSortis(Mouv, Dir) :- Dir = 9, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=61, Mouv\=62, Mouv\=63, Mouv\=64, Mouv\=8, Mouv\=16, Mouv\=24, Mouv\=32, Mouv\=40, Mouv\=48, Mouv\=56.
 
 
+
+
+
+
 %Prend le premier mouvement possible
 heuristique_premier_mouv(Board, Player, [H|T], H).
 
+
+
+
+
 heuristique_mouv_aleatoire(Board, Player, MouvList, Mouvement):-random_member(Mouvement, MouvList).
 
-heuristique_max_jetons_retournes(Board, Player, [H|T], H).
+
+
+
+
+
+
+
+heuristique_max_jetons_retournes(Board, Player, MouvList, Mouvement) :- assert(meilleurMove(-404)), assert(compteurMove(-404)),
+parcourirMouvementsPossibles(Board, Player, MouvList),
+retract(compteurMove(G)), retract(meilleurMove(X)), Mouvement is X.
+
+%%%% Parcour les différents mouvements possibles
+
+parcourirMouvementsPossibles(Board, Player, []).
+parcourirMouvementsPossibles(Board, Player, [Coup|CoupsPossibles]) :- assert(compteurActuel(0)), directions_Mouvement(Board, Player, Coup, [Emplacement|MouvementDirections]),
+compterPieces(Board, Emplacement, MouvementDirections, Player), actualiserMeilleurCoup(Coup), 
+parcourirMouvementsPossibles(Board, Player, CoupsPossibles).
+
+%%%% Compare le nombre de jetons retournés en mémoire et celui actuel puis met à jour le meilleur coup.
+
+actualiserMeilleurCoup(Move) :- retract(compteurActuel(X)), retract(compteurMove(Y)), assert(compteurActuel(X)), assert(compteurMove(Y)),  X =< Y,
+retract(compteurActuel(X)), !.
+actualiserMeilleurCoup(Move) :- retract(compteurActuel(X)), retract(compteurMove(Y)), X > Y, retract(meilleurMove(_)), assert(meilleurMove(Move)), assert(compteurMove(X)), 
+!.
+
+%%%% Ajoute 1 à la variable somme
+somme :- retract(compteurActuel(X)), Variable is X+1, assert(compteurActuel(Variable)).
+
+
+%%%% Compte les pieces retournee en parcourant les directions possibles
+
+compterPieces(Board, Emplacement, [], Player).
+compterPieces(Board, Emplacement, [Direction|Reste], Player) :- 
+compterPiecesDirection(Board, Emplacement, Direction, Player),
+compterPieces(Board, Emplacement, Reste, Player).
+
+
+%%%% Compte les pieces retournee dans une directions precise
+
+compterPiecesDirection(Board, Emplacement, Direction, Player):- Nemplacement is Emplacement+Direction, 
+nth1(Nemplacement, Board, Valeur), Valeur == Player, !.
+compterPiecesDirection(Board, Emplacement, Direction, Player):- Nemplacement is Emplacement+Direction,
+nth1(Nemplacement, Board, Valeur), Valeur \== Player, somme,
+compterPiecesDirection(Board, Nemplacement, Direction, Player).
+
+
+
+
+
+
+
+
+
+
+
+
 
 heuristique_mobilite(Board, Player, [H|T], H).
+
+
+
+
+
 
 
 %Recupere les directions ou des pions vont etre retournes pour le mouvement
