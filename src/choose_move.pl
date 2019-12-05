@@ -78,7 +78,7 @@ nonSortis(Mouv, Dir) :- Dir = 9, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=6
 %Prend le premier mouvement possible
 heuristique_premier_mouv(Board, Player, [H|T], H).
 
-heuristique_mouv_aleatoire(Board, Player, [H|T], H).
+heuristique_mouv_aleatoire(Board, Player, MouvList, Mouvement):-random_member(Mouvement, MouvList).
 
 heuristique_max_jetons_retournes(Board, Player, [H|T], H).
 
