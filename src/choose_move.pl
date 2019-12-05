@@ -1,3 +1,6 @@
+:- ensure_loaded('heuristiques.pl').
+
+
 choix_Mouvement(Board, Player, PlayerType, MouvementDirections) :-
 	trouver_Mouvements(Board, Player, MouvList),
 	once(choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections)).
@@ -74,15 +77,6 @@ nonSortis(Mouv, Dir) :- Dir = 7, Mouv\=1, Mouv\=9, Mouv\=17, Mouv\=25, Mouv\=33,
 nonSortis(Mouv, Dir) :- Dir = 8, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=61, Mouv\=62, Mouv\=63, Mouv\=64.
 nonSortis(Mouv, Dir) :- Dir = 9, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=61, Mouv\=62, Mouv\=63, Mouv\=64, Mouv\=8, Mouv\=16, Mouv\=24, Mouv\=32, Mouv\=40, Mouv\=48, Mouv\=56.
 
-
-%Prend le premier mouvement possible
-heuristique_premier_mouv(Board, Player, [H|T], H).
-
-heuristique_mouv_aleatoire(Board, Player, MouvList, Mouvement):-random_member(Mouvement, MouvList).
-
-heuristique_max_jetons_retournes(Board, Player, [H|T], H).
-
-heuristique_mobilite(Board, Player, [H|T], H).
 
 
 %Recupere les directions ou des pions vont etre retournes pour le mouvement

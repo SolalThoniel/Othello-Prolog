@@ -66,7 +66,7 @@ displayBoard, % print it
 trouver_Mouvements(Board, Player, MouvList),
 test_mouv_possible(Board, Player, MouvList, MouvementDirections),
 
-writeln(MouvementDirections),
+%writeln(MouvementDirections),
 faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player, NextPlayer), % Change the player before next turn
 play(NextPlayer, TabPlayerType). % next turn!
@@ -79,7 +79,7 @@ write('New turn for:'), writeln(Player),
 board(Board), % instanciate the board from the knowledge base
 displayBoard, % print it
 choix_Mouvement(Board, Player, PlayerType, MouvementDirections),
-writeln(MouvementDirections),
+%writeln(MouvementDirections),
 faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player,NextPlayer), % Change the player before next turn
 play(NextPlayer,TabPlayerType). % next turn!
@@ -156,6 +156,7 @@ printVal(N) :- board(B), nth1(N,B,Val), write(' '),write(Val).
 
 %%%% Display the board
 displayBoard:-
+ writeln(''),
  writeln('  A B C D E F G H '),
  write('1'), printVal(1), printVal(2), printVal(3), printVal(4), printVal(5), printVal(6), printVal(7), printVal(8), writeln(' 1'),
  write('2'), printVal(9), printVal(10), printVal(11), printVal(12), printVal(13), printVal(14), printVal(15), printVal(16),writeln(' 2'),
@@ -165,7 +166,8 @@ displayBoard:-
  write('6'), printVal(41), printVal(42), printVal(43), printVal(44), printVal(45), printVal(46), printVal(47), printVal(48), writeln(' 6'),
  write('7'), printVal(49), printVal(50), printVal(51), printVal(52), printVal(53), printVal(54), printVal(55), printVal(56), writeln(' 7'),
  write('8'), printVal(57), printVal(58), printVal(59), printVal(60), printVal(61), printVal(62), printVal(63), printVal(64), writeln(' 8'),
- writeln('  A B C D E F G H ').
+ writeln('  A B C D E F G H '),
+ writeln('').
 
 %%%%% Start the game!
 
