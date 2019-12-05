@@ -1,12 +1,22 @@
-choix_Mouvement(Board, Player, MouvementDirections) :-
+choix_Mouvement(Board, Player, PlayerType, MouvementDirections) :-
 	trouver_Mouvements(Board, Player, MouvList),
-	once(choix_Mouvement_Directions(Board, Player, MouvList, MouvementDirections)).
+	once(choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections)).
 
 	
 %Teste si on a trouve des mouvements possibles ou non
-choix_Mouvement_Directions(Board, Player, [], []).
+choix_Mouvement_Directions(Board, Player, PlayerType, [], []).
 
-choix_Mouvement_Directions(Board, Player, MouvList, MouvementDirections) :- evaluer_Mouvements(Board, Player, MouvList, Mouvement),
+%Utilise une des heuristiques pour trouver le mouvement suivant PlayerType
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 2, heuristique_premier_mouv(Board, Player, MouvList, Mouvement),
+directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
+
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 3, heuristique_mouv_aleatoire(Board, Player, MouvList, Mouvement),
+directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
+
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 4, heuristique_max_jetons_retournes(Board, Player, MouvList, Mouvement),
+directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
+
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 5, heuristique_mobilite(Board, Player, MouvList, Mouvement),
 directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
 
 
@@ -65,12 +75,14 @@ nonSortis(Mouv, Dir) :- Dir = 8, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=6
 nonSortis(Mouv, Dir) :- Dir = 9, Mouv\=57, Mouv\=58, Mouv\=59, Mouv\=60, Mouv\=61, Mouv\=62, Mouv\=63, Mouv\=64, Mouv\=8, Mouv\=16, Mouv\=24, Mouv\=32, Mouv\=40, Mouv\=48, Mouv\=56.
 
 
-
-
 %Prend le premier mouvement possible
-evaluer_Mouvements(Board, Player, [H|T], H).
+heuristique_premier_mouv(Board, Player, [H|T], H).
 
+heuristique_mouv_aleatoire(Board, Player, MouvList, Mouvement):-random_member(Mouvement, MouvList).
 
+heuristique_max_jetons_retournes(Board, Player, [H|T], H).
+
+heuristique_mobilite(Board, Player, [H|T], H).
 
 
 %Recupere les directions ou des pions vont etre retournes pour le mouvement
