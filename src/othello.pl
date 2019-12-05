@@ -26,26 +26,26 @@ countPlayer(Player, Board, C) :- bagof(Player, member(Player, Board), List),
  length(List,C).
 
 %%% Predicate that checks if Player1 is the winner
-winner(Board, Winner) :-
+winner(Board, Winner, 'x', C1) :-
  countPlayer('x', Board, C1),
  countPlayer('o', Board, C2),
  C1 > C2,
- string_concat('x', " gagne avec ", Gagnant),
- string_concat(Gagnant, C1, Gagnant2),
+ string_concat('x', " gagne avec ", Gagnant3),
+ string_concat(Gagnant3, C1, Gagnant2),
  string_concat(Gagnant2, " points.", Winner).
 
 %%% Predicate that checks if this is a draw
-winner(Board, Winner) :-
+winner(Board, Winner, 'o', C2) :-
  countPlayer('x', Board, C1),
  countPlayer('o', Board, C2),
  C1 < C2,
- string_concat('o', " gagne avec ", Gagnant),
- string_concat(Gagnant, C2, Gagnant2),
+ string_concat('o', " gagne avec ", Gagnant3),
+ string_concat(Gagnant3, C2, Gagnant2),
  string_concat(Gagnant2, " points.", Winner).
 
 
 %%% Predicate that checks if this is a draw
-winner(Board, Winner) :-
+winner(Board, Winner, 'e', 32) :-
  countPlayer('x', Board, C1),
  countPlayer('o', Board, C2),
  C1 == C2,
@@ -53,11 +53,11 @@ winner(Board, Winner) :-
 
 
 % The game is over, we use a cut to stop the proof search, and display the winner-board.
-play(_,_):- board(Board), endGame(Board), winner(Board, Winner), !, displayBoard.
+play(_,_, Gagnant, Score, OldBoard):- board(OldBoard), endGame(OldBoard), winner(OldBoard, Winner, Gagnant, Score), !.
 
 
 %The game is not over, we play the next turn for a human
-play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
+play(Player, TabPlayerType, Gagnant, Score, OldBoard) :- getPlayerType(Player, TabPlayerType, PlayerType),
 PlayerType == 1,
 board(Board), % instanciate the board from the knowledge base
 
@@ -67,11 +67,11 @@ test_mouv_possible(Board, Player, MouvList, MouvementDirections),
 
 faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player, NextPlayer), % Change the player before next turn
-play(NextPlayer, TabPlayerType). % next turn!
+play(NextPlayer, TabPlayerType, Gagnant, Score, OldBoard). % next turn!
 
 
 %The game is not over, we play the next turn for an IA
-play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
+play(Player, TabPlayerType, Gagnant, Score, OldBoard) :- getPlayerType(Player, TabPlayerType, PlayerType),
 PlayerType \= 1,
 
 board(Board), % instanciate the board from the knowledge base
@@ -80,7 +80,7 @@ choix_Mouvement(Board, Player, PlayerType, MouvementDirections),
 
 faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player,NextPlayer), % Change the player before next turn
-play(NextPlayer,TabPlayerType). % next turn!
+play(NextPlayer,TabPlayerType, Gagnant, Score, OldBoard). % next turn!
 
 %Demande un mouvement au joueur humain
 demandeMouv(Board, Player, MouvList, Move) :- menuJouerLigne,
@@ -167,7 +167,7 @@ displayBoard:-
 
 %%%%% Start the game!
 
-initBoard(Jx, Jo) :- length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x', ['x', Jx, 'o', Jo]).
+initBoard(Jx, Jo, Gagnant, Score, OldBoard) :- length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x', ['x', Jx, 'o', Jo], Gagnant, Score, OldBoard).
 
 
 %%%%% Menu
@@ -177,13 +177,26 @@ menuJouerColonne :- writeln("Selectionner la colonne que vous souhaitez jouer").
 menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 
 %%%%% Start the menu before playing
-start(TypeJx, TypeJo, Gagnant, Score) :- boucle_stats(Gagnant, Score, TypeJx, TypeJo, 1).
+start(TypeJx, TypeJo, Gagnant, Score) :- boucle_stats(Gagnant, Score, TypeJx, TypeJo, 1), writeln(Gagnant), writeln(Score), count('x',Gagnant, NbX), count('o',Gagnant, NbO), count('e',Gagnant, NbE),
+write("Nb x : "), writeln(NbX), write("Nb o : "), writeln(NbO), write("Nb e : "), writeln(NbE).
 
-boucle_stats(Gagnant, Score, TypeJx, TypeJo, 1) :- initBoard(TypeJx, TypeJo, Gagnant, Score), boucle_stats(Gagnant, Score, TypeJx, TypeJo, 2).
 
-boucle_stats(Gagnant, Score, TypeJx, TypeJo, 100) :- retract(board(OldBoard)), initBoard(TypeJx, TypeJo).
+count(_, [], 0).
+count(X, [X | T], N) :-
+  !, count(X, T, N1),
+  N is N1 + 1.
+count(X, [_ | T], N) :-
+  count(X, T, N).
 
-boucle_stats(Gagnant, Score, TypeJx, TypeJo, Compteur) :- NewCompteur is Compteur + 1, retract(board(OldBoard)), initBoard(TypeJx, TypeJo, Gagnant, Score), boucle_stats(Gagnant, Score, TypeJx, TypeJo, NewCompteur).
+
+
+
+boucle_stats(GagnantFinal, ScoreFinal, TypeJx, TypeJo, 1) :- initBoard(TypeJx, TypeJo, Gagnant, Score, OldBoard), retract(board(OldBoard)), boucle_stats(GagnantFinal, ScoreFinal, [Gagnant], [Score], TypeJx, TypeJo, 2).
+
+boucle_stats(GagnantFinal, ScoreFinal, GagnantTemp, ScoreTemp, TypeJx, TypeJo, 100) :- initBoard(TypeJx, TypeJo, Gagnant, Score, OldBoard), append([Gagnant], GagnantTemp, GagnantFinal), append([Score], ScoreTemp, ScoreFinal).
+
+boucle_stats(GagnantFinal, ScoreFinal, GagnantTemp, ScoreTemp, TypeJx, TypeJo, Compteur) :- NewCompteur is Compteur + 1, initBoard(TypeJx, TypeJo, Gagnant, Score, OldBoard), retract(board(OldBoard)),
+append([Gagnant], GagnantTemp, NouvGagnantTemp), append([Score], ScoreTemp, NouvScoreTemp), boucle_stats(GagnantFinal, ScoreFinal, NouvGagnantTemp, NouvScoreTemp, TypeJx, TypeJo, NewCompteur).
 
 
 
