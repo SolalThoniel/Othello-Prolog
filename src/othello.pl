@@ -74,11 +74,11 @@ play(NextPlayer, TabPlayerType). % next turn!
 
 %The game is not over, we play the next turn for an IA
 play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
-PlayerType == 2,
+PlayerType \= 1,
 write('New turn for:'), writeln(Player),
 board(Board), % instanciate the board from the knowledge base
 displayBoard, % print it
-choix_Mouvement(Board, Player, MouvementDirections),
+choix_Mouvement(Board, Player, PlayerType, MouvementDirections),
 writeln(MouvementDirections),
 faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player,NextPlayer), % Change the player before next turn
@@ -169,13 +169,22 @@ displayBoard:-
 
 %%%%% Start the game!
 
-initBoard(C, D) :- length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x', ['x', C, 'o', D]).
+initBoard(Jx, Jo) :- length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x', ['x', Jx, 'o', Jo]).
 
 
 %%%%% Menu
 menuPlayer :- writeln("1- Humain"), writeln("2- IA").
+menuIA :- writeln("Selectionnez le type d'heuristique a utiliser:"), writeln("1- Choisit le premier mouvement possible."), writeln("2- Choisit un mouvement possible de maniere aleatoire."), writeln("3- Choisit le mouvement qui permet de retourner le plus de pieces."), writeln("1- Choisit le mouvement qui maximise les mouvements possibles au prochain tour et minimise les mouvements de l'adversaire.").
 menuJouerColonne :- writeln("Selectionner la colonne que vous souhaitez jouer").
 menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 
 %%%%% Start the menu before playing
-start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur, il jouera les x : ") , menuPlayer, read(C), writeln("Selectionner le deuxieme joueur, il jouera les o : "), menuPlayer, read(D), initBoard(C, D).
+start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur, il jouera les x : ") , menuPlayer, read(Jx), writeln("Selectionner le deuxieme joueur, il jouera les o : "), menuPlayer, read(Jo), type_IA1(Jx, Jo, TypeJx, TypeJo), initBoard(TypeJx, TypeJo).
+
+type_IA1(Jx, Jo, TypeJx, TypeJo) :- Jx == 2, menuIA, read(TypeIA), TypeJx is TypeIA + 1, type_IA2(Jx, Jo, TypeJx, TypeJo).
+type_IA1(Jx, Jo, Jx, TypeJo) :- type_IA2(Jx, Jo, Jx, TypeJo).
+
+type_IA2(Jx, Jo, TypeJx, TypeJo) :- Jo == 2, menuIA, read(TypeIA), TypeJo is TypeIA + 1.
+type_IA2(Jx, Jo, TypeJx, Jo).
+
+
