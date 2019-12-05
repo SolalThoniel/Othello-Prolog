@@ -53,20 +53,18 @@ winner(Board, Winner) :-
 
 
 % The game is over, we use a cut to stop the proof search, and display the winner-board.
-play(_,_):- board(Board), endGame(Board), winner(Board, Winner), !, writeln('Game is Over.'), writeln(Winner), displayBoard.
+play(_,_):- board(Board), endGame(Board), winner(Board, Winner), !, displayBoard.
 
 
 %The game is not over, we play the next turn for a human
 play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
 PlayerType == 1,
-write('New turn for:'), writeln(Player),
 board(Board), % instanciate the board from the knowledge base
-displayBoard, % print it
 
 trouver_Mouvements(Board, Player, MouvList),
 test_mouv_possible(Board, Player, MouvList, MouvementDirections),
 
-writeln(MouvementDirections),
+
 faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player, NextPlayer), % Change the player before next turn
 play(NextPlayer, TabPlayerType). % next turn!
@@ -75,11 +73,11 @@ play(NextPlayer, TabPlayerType). % next turn!
 %The game is not over, we play the next turn for an IA
 play(Player, TabPlayerType) :- getPlayerType(Player, TabPlayerType, PlayerType),
 PlayerType \= 1,
-write('New turn for:'), writeln(Player),
+
 board(Board), % instanciate the board from the knowledge base
-displayBoard, % print it
+
 choix_Mouvement(Board, Player, PlayerType, MouvementDirections),
-writeln(MouvementDirections),
+
 faire_mouvement(Board,MouvementDirections,Player),
 changePlayer(Player,NextPlayer), % Change the player before next turn
 play(NextPlayer,TabPlayerType). % next turn!
@@ -92,7 +90,7 @@ read(Colonne),
 convertTab(Colonne, Ligne, Move),
 member(Move, MouvList).
 
-demandeMouv(Board, Player, MouvList, Move) :- writeln("Desole votre mouvement n'est pas possible, veuillez en choisir un autre"),
+demandeMouv(Board, Player, MouvList, Move) :-
 demandeMouv(Board, Player, MouvList, Move).
 
 
@@ -104,7 +102,7 @@ directions_Mouvement(Board, Player, Move, MouvementDirections).
 
 
 %Applique le mouvement si il existe
-faire_mouvement(Board,[],Player) :- writeln("Desole vous ne pouvez pas jouer, vous passez votre tour.").
+faire_mouvement(Board,[],Player).
 
 faire_mouvement(Board,MouvementDirections,Player) :- playMove(Board,MouvementDirections,NewBoard,Player), % Play the move and get the result in a new Board
 applyIt(Board, NewBoard). % Remove the old board from the KB and store the new one.
@@ -169,7 +167,7 @@ displayBoard:-
 
 %%%%% Start the game!
 
-initBoard(Jx, Jo) :- length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), writeln(Jx), writeln(Jo), play('x', ['x', Jx, 'o', Jo]).
+initBoard(Jx, Jo) :- length(Board,64) , assert(board(Board)), placePiece(Board,28,NewBoard,'o'), placePiece(Board,37,NewBoard,'o'), placePiece(Board,29,NewBoard,'x'), placePiece(Board,36, NewBoard,'x'), applyIt(Board,NewBoard), play('x', ['x', Jx, 'o', Jo]).
 
 
 %%%%% Menu
@@ -179,6 +177,19 @@ menuJouerColonne :- writeln("Selectionner la colonne que vous souhaitez jouer").
 menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 
 %%%%% Start the menu before playing
+start(TypeJx, TypeJo, Gagnant, Score) :- boucle_stats(Gagnant, Score, TypeJx, TypeJo, 1).
+
+boucle_stats(Gagnant, Score, TypeJx, TypeJo, 1) :- initBoard(TypeJx, TypeJo, Gagnant, Score), boucle_stats(Gagnant, Score, TypeJx, TypeJo, 2).
+
+boucle_stats(Gagnant, Score, TypeJx, TypeJo, 100) :- retract(board(OldBoard)), initBoard(TypeJx, TypeJo).
+
+boucle_stats(Gagnant, Score, TypeJx, TypeJo, Compteur) :- NewCompteur is Compteur + 1, retract(board(OldBoard)), initBoard(TypeJx, TypeJo, Gagnant, Score), boucle_stats(Gagnant, Score, TypeJx, TypeJo, NewCompteur).
+
+
+
+
+
+
 start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur, il jouera les x : ") , menuPlayer, read(Jx), writeln("Selectionner le deuxieme joueur, il jouera les o : "), menuPlayer, read(Jo), type_IA1(Jx, Jo, TypeJx, TypeJo), initBoard(TypeJx, TypeJo).
 
 type_IA1(Jx, Jo, TypeJx, TypeJo) :- Jx == 2, writeln("Selectionnez le type d'heuristique a utiliser pour le joueur x :"), menuIA, read(TypeIA), TypeJx is TypeIA + 1, type_IA2(Jx, Jo, TypeJx, TypeJo).
