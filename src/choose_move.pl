@@ -2,7 +2,7 @@ choix_Mouvement(Board, Player, MouvementDirections) :-
 	trouver_Mouvements(Board, Player, MouvList),
 	once(choix_Mouvement_Directions(Board, Player, MouvList, MouvementDirections)).
 
-	
+
 %Teste si on a trouve des mouvements possibles ou non
 choix_Mouvement_Directions(Board, Player, [], []).
 
@@ -103,6 +103,4 @@ nth1(NouvPos, Board, NouvCase), var(NouvCase) ).
 %On continue la recursion
 test_voisin_suivant_dir(Board, Player, Mouvement, Directions, Dir) :- nonSortis(Mouvement, Dir), NouvPos is Mouvement + Dir,
 nth1(NouvPos, Board, NouvCase), nonvar(NouvCase), NouvCase\=Player, test_voisin_suivant_dir(Board, Player, NouvPos, Directions, Dir).
-
-
 
