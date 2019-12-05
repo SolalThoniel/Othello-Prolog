@@ -7,16 +7,16 @@ choix_Mouvement(Board, Player, PlayerType, MouvementDirections) :-
 choix_Mouvement_Directions(Board, Player, PlayerType, [], []).
 
 %Utilise une des heuristiques pour trouver le mouvement suivant PlayerType
-choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- Playertype == 2, heuristique_premier_mouv(Board, Player, MouvList, Mouvement),
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 2, heuristique_premier_mouv(Board, Player, MouvList, Mouvement),
 directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
 
-choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- Playertype == 3, heuristique_mouv_aleatoire(Board, Player, MouvList, Mouvement),
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 3, heuristique_mouv_aleatoire(Board, Player, MouvList, Mouvement),
 directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
 
-choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- Playertype == 4, heuristique_max_jetons_retournes(Board, Player, MouvList, Mouvement),
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 4, heuristique_max_jetons_retournes(Board, Player, MouvList, Mouvement),
 directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
 
-choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- Playertype == 5, heuristique_mobilite(Board, Player, MouvList, Mouvement),
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 5, heuristique_mobilite(Board, Player, MouvList, Mouvement),
 directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
 
 
