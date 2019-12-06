@@ -1,3 +1,4 @@
+:- ensure_loaded('othello.pl').
 :- dynamic compteurActuel/1.  
 :- dynamic meilleurMove/1.  
 :- dynamic compteurMove/1. 
@@ -24,6 +25,8 @@ directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
 choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 5, heuristique_mobilite(Board, Player, MouvList, Mouvement),
 directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
 
+choix_Mouvement_Directions(Board, Player, PlayerType, MouvList, MouvementDirections) :- PlayerType == 6, heuristique_max_jetons_retournes_coins_et_bords(Board, Player, MouvList, Mouvement),
+directions_Mouvement(Board, Player, Mouvement, MouvementDirections).
 
 %Le once(length) force la list à choisir une taille et elimine les elements inconnu qui pourraits etre solution.
 trouver_Mouvements(Board, Player, MouvList) :- once(recup_Mouv_possible(Board,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64], Player, MouvList)), once(length(MouvList, Taille)).
@@ -150,9 +153,96 @@ compterPiecesDirection(Board, Nemplacement, Direction, Player).
 
 
 
-heuristique_mobilite(Board, Player, [H|T], H).
+%H4 : Joue le coup qui minimise les coups possibles pour l'adversaire et maximise les coups possibles pour le joueur
+heuristique_mobilite(Board, Player, MouvList, Mouvement) :- choix_Coup_Nbr_Mouvements(Board,Player,MouvList,MouvTemp,-100,Mouvement).
 
 
+heuristique_Nbr_Mouvements(Board,Player1,Heuristique):-trouver_Mouvements(Board,Player1,List1),
+	oppose(Player1,Player2),trouver_Mouvements(Board,Player2,List2),
+	length(List1,N1),length(List2,N2),Heuristique is N1-N2.
+
+% condition d'arret de l'ia qui maximise le differentiel du nombre de
+% coups entre les deux joueurs
+choix_Coup_Nbr_Mouvements(_,_,[],Coup,_,Coup).
+
+% regle principale, joue le coup, récupère l'heuristique et garde la
+% plus grande heuristique et son coup équivalent.
+choix_Coup_Nbr_Mouvements(Board,Player,[H|T],Coup,Heuristique,CoupAbsolu):-directions_Mouvement(Board, Player, H, MouvementDirections),
+ playMove(Board,MouvementDirections,NewBoard,Player),
+ heuristique_Nbr_Mouvements(NewBoard,Player,HeuristiqueTMP),
+ choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,T,H,Coup,CoupAbsolu).
+
+%if else permettant de garder le coup ayant la plus grande heuristique.
+choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup,CoupAbsolu):-HeuristiqueTMP>=Heuristique,
+ choix_Coup_Nbr_Mouvements(Board,Player,List,CoupTMP,HeuristiqueTMP,CoupAbsolu).
+%if else permettant de garder le coup ayant la plus grande heuristique.
+choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup,CoupAbsolu):-HeuristiqueTMP<Heuristique,
+ choix_Coup_Nbr_Mouvements(Board,Player,List,Coup,Heuristique,CoupAbsolu).
+
+oppose(Player, Oppose) :- Player=='x',!, Oppose='o'.
+oppose(Player, Oppose) :- Player=='o',!, Oppose='x'.
+
+
+
+
+%H5 amélioration de H3 en priorisant les coups permettants de prendre un coin ou un bord, sans prendre un bord si l'adversaire peut prendre un coin ensuite.
+heuristique_max_jetons_retournes_coins_et_bords(Board, Player, CoupsPossibles, Move) :- assert(meilleurMove(-404)), assert(compteurMove(-404)),
+parcourirMouvementsPossibles2(Board, Player, CoupsPossibles),
+retract(compteurMove(G)), retract(meilleurMove(X)), Move is X.
+
+
+parcourirMouvementsPossibles2(Board, Player, []).
+
+parcourirMouvementsPossibles2(Board, Player, [Coup|CoupsPossibles]) :- assert(compteurActuel(0)), directions_Mouvement(Board, Player, Coup, [Emplacement|MouvementDirections]),
+compterPieces(Board, Emplacement, MouvementDirections, Player), testBord(Board, Emplacement, MouvementDirections, Player), actualiserMeilleurCoup(Coup), 
+parcourirMouvementsPossibles2(Board, Player, CoupsPossibles).
+
+
+testBord(Board, Emplacement, [], Player).
+    testBord2(Board, Emplacement, [], Player).
+    testBord(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [3,4,5,6,17,25,33,41,24,32,40,48,59,60,61,62], Emplacement), retract(compteurActuel(Y)), assert(compteurActuel(48)), testBord(Board, Emplacement, [], Player), !.
+    testBord(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [1,8,57,64], Emplacement), retract(compteurActuel(Y)), assert(compteurActuel(50)), testBord(Board, Emplacement, [], Player), !.
+    testBord(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), retract(compteurActuel(Y)), assert(compteurActuel(1)), 
+            testBord2(Board, Emplacement, [Direction|Reste], Player).
+    testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 2, 
+            nth1(1, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player), !.
+    testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 7, 
+            nth1(8, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player), !.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 10, 
+            nth1(1, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player), !.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- Emplacement == 9,
+            nth1(1, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)),
+            testBord2(Board, Emplacement, [], Player), !.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 15, 
+            nth1(8, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player), !.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 50, 
+            nth1(57, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player),!.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 16, 
+            nth1(8, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player),!.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 49, 
+            nth1(57, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player),!.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 58, 
+            nth1(57, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player),!.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 56, 
+            nth1(64, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player),!.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 55, 
+            nth1(64, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player),!.
+testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 63, 
+            nth1(64, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
+            testBord2(Board, Emplacement, [], Player),!.
+
+    testBord(Board, Emplacement, [Direction|Reste], Player).
+     testBord2(Board, Emplacement, [Direction|Reste], Player).
 
 
 

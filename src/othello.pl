@@ -131,8 +131,6 @@ retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemp
 	   retournerPiecesDirection(BoardTemp, Nemplacement, Direction, NewBoard, Player).
 
 
-oppose(Player, Oppose) :- Player=='x', Oppose=='o'.
-oppose(Player, Oppose) :- Player=='o', Oppose=='x'.
 
 %Remove old board-save new on in the knowledge base
 applyIt(Board,NewBoard) :- retract(board(Board)), assert(board(NewBoard)).
@@ -178,8 +176,16 @@ menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 
 %%%%% Start the menu before playing
 start(TypeJx, TypeJo, Gagnant, Score) :- boucle_stats(Gagnant, Score, TypeJx, TypeJo, 1), writeln(Gagnant), writeln(Score), count('x',Gagnant, NbX), count('o',Gagnant, NbO), count('e',Gagnant, NbE),
-write("Nb x : "), writeln(NbX), write("Nb o : "), writeln(NbO), write("Nb e : "), writeln(NbE).
+write("Nb x : "), writeln(NbX), write("Nb o : "), writeln(NbO), write("Nb e : "), writeln(NbE), avg(Score, Moy), write("moyenne : "), writeln(Moy).
 
+avg( List, Avg ):- 
+    list_sum( List, Sum ),
+    length( List, Length), 
+    Avg is Sum / Length.
+
+list_sum([Item], Item).
+list_sum([Item1,Item2 | Tail], Total) :-
+    list_sum([Item1+Item2|Tail], Total).
 
 count(_, [], 0).
 count(X, [X | T], N) :-
