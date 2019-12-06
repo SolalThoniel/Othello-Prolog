@@ -133,9 +133,6 @@ retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemp
 	   retournerPiecesDirection(BoardTemp, Nemplacement, Direction, NewBoard, Player).
 
 
-oppose(Player, Oppose) :- Player=='x', Oppose=='o'.
-oppose(Player, Oppose) :- Player=='o', Oppose=='x'.
-
 %Remove old board-save new on in the knowledge base
 applyIt(Board,NewBoard) :- retract(board(Board)), assert(board(NewBoard)).
 
