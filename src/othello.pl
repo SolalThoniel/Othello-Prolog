@@ -176,7 +176,7 @@ initBoard(Jx, Jo) :- length(Board,64) , assert(board(Board)), placePiece(Board,2
 
 %%%%% Menu
 menuPlayer :- writeln("1- Humain"), writeln("2- IA").
-menuIA :- writeln("1- Choisit le premier mouvement possible."), writeln("2- Choisit un mouvement possible de maniere aleatoire."), writeln("3- Choisit le mouvement qui permet de retourner le plus de pieces."), writeln("4- Choisit le mouvement qui maximise les mouvements possibles au prochain tour et minimise les mouvements de l'adversaire.").
+menuIA :- writeln("1- Choisit le premier mouvement possible."), writeln("2- Choisit un mouvement possible de maniere aleatoire."), writeln("3- Choisit le mouvement qui permet de retourner le plus de pieces."), writeln("4- Choisit le mouvement qui maximise les mouvements possibles au prochain tour et minimise les mouvements de l'adversaire."), writeln("5- Amelioration de l'heuristique 3 avec la prioritee donnee a la capture des coins et des bords").
 menuJouerColonne :- writeln("Selectionner la colonne que vous souhaitez jouer").
 menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 
