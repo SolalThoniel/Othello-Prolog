@@ -137,16 +137,21 @@ heuristique_Nbr_Mouvements(Board,Player1,Heuristique):-trouver_Mouvements(Board,
 	oppose(Player1,Player2),trouver_Mouvements(Board,Player2,List2),
 	length(List1,N1),length(List2,N2),Heuristique is N1-N2.
 
+% condition d'arret de l'ia qui maximise le differentiel du nombre de
+% coups entre les deux joueurs
 choix_Coup_Nbr_Mouvements(_,_,[],Coup,_,Coup).
 
+% regle principale, joue le coup, récupère l'heuristique et garde la
+% plus grande heuristique et son coup équivalent.
 choix_Coup_Nbr_Mouvements(Board,Player,[H|T],Coup,Heuristique,CoupAbsolu):-directions_Mouvement(Board, Player, H, MouvementDirections),
  playMove(Board,MouvementDirections,NewBoard,Player),
  heuristique_Nbr_Mouvements(NewBoard,Player,HeuristiqueTMP),
  choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,T,H,Coup,CoupAbsolu).
 
+%if else permettant de garder le coup ayant la plus grande heuristique.
 choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup,CoupAbsolu):-HeuristiqueTMP>=Heuristique,
  choix_Coup_Nbr_Mouvements(Board,Player,List,CoupTMP,HeuristiqueTMP,CoupAbsolu).
-
+%if else permettant de garder le coup ayant la plus grande heuristique.
 choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup,CoupAbsolu):-HeuristiqueTMP<Heuristique,
  choix_Coup_Nbr_Mouvements(Board,Player,List,Coup,Heuristique,CoupAbsolu).
 

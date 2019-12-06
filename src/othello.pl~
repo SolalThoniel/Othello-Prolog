@@ -137,18 +137,18 @@ heuristique_Nbr_Mouvements(Board,Player1,Heuristique):-trouver_Mouvements(Board,
 	oppose(Player1,Player2),trouver_Mouvements(Board,Player2,List2),
 	length(List1,N1),length(List2,N2),Heuristique is N1-N2.
 
-choix_Coup_Nbr_Mouvements(_,_,[],_,_).
+choix_Coup_Nbr_Mouvements(_,_,[],Coup,_,Coup).
 
-choix_Coup_Nbr_Mouvements(Board,Player,[H|T],Coup,Heuristique):-directions_Mouvement(Board, Player, H, MouvementDirections),
+choix_Coup_Nbr_Mouvements(Board,Player,[H|T],Coup,Heuristique,CoupAbsolu):-directions_Mouvement(Board, Player, H, MouvementDirections),
  playMove(Board,MouvementDirections,NewBoard,Player),
  heuristique_Nbr_Mouvements(NewBoard,Player,HeuristiqueTMP),
- choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,T,H,Coup).
+ choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,T,H,Coup,CoupAbsolu).
 
-choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup):-HeuristiqueTMP>=Heuristique,
- choix_Coup_Nbr_Mouvements(Board,Player,List,CoupTMP,HeuristiqueTMP).
+choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup,CoupAbsolu):-HeuristiqueTMP>=Heuristique,
+ choix_Coup_Nbr_Mouvements(Board,Player,List,CoupTMP,HeuristiqueTMP,CoupAbsolu).
 
-choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup):-HeuristiqueTMP<Heuristique,
- choix_Coup_Nbr_Mouvements(Board,Player,List,Coup,Heuristique).
+choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup,CoupAbsolu):-HeuristiqueTMP<Heuristique,
+ choix_Coup_Nbr_Mouvements(Board,Player,List,Coup,Heuristique,CoupAbsolu).
 
 oppose(Player, Oppose) :- Player=='x',!, Oppose='o'.
 oppose(Player, Oppose) :- Player=='o',!, Oppose='x'.
