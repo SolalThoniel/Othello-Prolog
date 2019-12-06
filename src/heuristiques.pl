@@ -121,6 +121,72 @@ testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,1
 testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 50, 
             nth1(57, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
             testBord2(Board, Emplacement, [], Player),!.
+	    
+	    
+
+% H6 : En utilisant l'algorithme minmax j'ai choisi les 2 premiers
+% mouvements et puis on passe à la place de l'adversaire pour predire
+% son mouvement .
+% On minimise pour l'adversaire
+heuristique_minmax(Board, Player, [H,T],H):- min_jetons_retournes(Board, Player,MoveList, Mouvement).
+
+% a partir des mouvements possibles on cherche le minimum nombre de pion
+% possible
+min_jetons_retournes(Board, Player, MouvList, Mouvement) :- assert(meilleurMovemini(-404)), assert(compteurMovemini(-404)),
+parcourirMouvementsPossibles(Board, Player, MouvList),
+retract(compteurMovemini(G)), retract(meilleurMovemini(X)), Mouvement is X.
+
+%%%% Parcour les diffÃƒÂ©rents mouvements possibles
+
+parcourirMouvementsPossibles(Board, Player, []).
+parcourirMouvementsPossibles(Board, Player, [Coup|CoupsPossibles]) :- assert(compteurActuelmini(0)), directions_Mouvement(Board, Player, Coup, [Emplacement|MouvementDirections]),
+compterPieces(Board, Emplacement, MouvementDirections, Player), actualiserMeilleurCoup(Coup),
+parcourirMouvementsPossibles(Board, Player, CoupsPossibles).
+
+%%%% Compare le nombre de jetons retournÃƒÂ©s en mÃƒÂ©moire et celui actuel
+%%%% puis met ÃƒÂ  jour le meilleur coup(minimum).
+
+actualiserMeilleurCoup(Move) :- retract(compteurActuelmini(X)), retract(compteurMovemini(Y)), assert(compteurActuelmini(X)), assert(compteurMovemini(Y)),  X >= Y,
+retract(compteurActuelmini(X)), !.
+actualiserMeilleurCoup(Move) :- retract(compteurActuelmini(X)), retract(compteurMovemini(Y)), X < Y, retract(meilleurMovemini(_)), assert(meilleurMovemini(Move)), assert(compteurMovemini(X)),
+!.
+
+%%%% Ajoute 1 ÃƒÂ  la variable somme
+somme :- retract(compteurActuelmini(X)), Variable is X+1, assert(compteurActuelmini(Variable)).
+
+
+%%%% Compte les pieces retournee en parcourant les directions possibles
+
+compterPieces(Board, Emplacement, [], Player).
+compterPieces(Board, Emplacement, [Direction|Reste], Player) :-
+compterPiecesDirection(Board, Emplacement, Direction, Player),
+compterPieces(Board, Emplacement, Reste, Player).
+
+
+%%%% Compte les pieces retournee dans une directions precise
+
+compterPiecesDirection(Board, Emplacement, Direction, Player):- Nemplacement is Emplacement+Direction,
+nth1(Nemplacement, Board, Valeur), Valeur == Player, !.
+compterPiecesDirection(Board, Emplacement, Direction, Player):- Nemplacement is Emplacement+Direction,
+nth1(Nemplacement, Board, Valeur), Valeur \== Player, somme,
+compterPiecesDirection(Board, Nemplacement, Direction, Player).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 testBord2(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [2,7, 10,9,15, 50,16,49,58,56,55,63], Emplacement), X == 16, 
             nth1(8, Board, M), M == Player, retract(compteurActuel(Y)), assert(compteurActuel(49)), 
             testBord2(Board, Emplacement, [], Player),!.
