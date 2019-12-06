@@ -57,7 +57,6 @@ compterPiecesDirection(Board, Nemplacement, Direction, Player).
 %H4 : Joue le coup qui minimise les coups possibles pour l'adversaire et maximise les coups possibles pour le joueur
 heuristique_mobilite(Board, Player, MouvList, Mouvement) :- choix_Coup_Nbr_Mouvements(Board,Player,MouvList,MouvTemp,-100,Mouvement).
 
-
 heuristique_Nbr_Mouvements(Board,Player1,Heuristique):-trouver_Mouvements(Board,Player1,List1),
 	oppose(Player1,Player2),trouver_Mouvements(Board,Player2,List2),
 	length(List1,N1),length(List2,N2),Heuristique is N1-N2.
@@ -80,6 +79,7 @@ choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP
 choix_Coup_Nbr_Mouvements_6(HeuristiqueTMP,Heuristique,Board,Player,List,CoupTMP,Coup,CoupAbsolu):-HeuristiqueTMP<Heuristique,
  choix_Coup_Nbr_Mouvements(Board,Player,List,Coup,Heuristique,CoupAbsolu).
 
+%permet de recuperer le signe du joueur adversaire
 oppose(Player, Oppose) :- Player=='x',!, Oppose='o'.
 oppose(Player, Oppose) :- Player=='o',!, Oppose='x'.
 
@@ -96,7 +96,7 @@ parcourirMouvementsPossibles2(Board, Player, [Coup|CoupsPossibles]) :- assert(co
 compterPieces(Board, Emplacement, MouvementDirections, Player), testBord(Board, Emplacement, MouvementDirections, Player), actualiserMeilleurCoup(Coup), 
 parcourirMouvementsPossibles2(Board, Player, CoupsPossibles).
 
-
+%Test si l'emplacement considere est un coin ou un bord
 testBord(Board, Emplacement, [], Player).
     testBord2(Board, Emplacement, [], Player).
     testBord(Board, Emplacement, [Direction|Reste], Player) :- nth1(X, [3,4,5,6,17,25,33,41,24,32,40,48,59,60,61,62], Emplacement), retract(compteurActuel(Y)), assert(compteurActuel(48)), testBord(Board, Emplacement, [], Player), !.
