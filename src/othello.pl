@@ -63,6 +63,7 @@ write('New turn for:'), writeln(Player),
 board(Board), % instanciate the board from the knowledge base
 displayBoard, % print it
 
+%Permet de recuperer la liste des mouvements legaux
 trouver_Mouvements(Board, Player, MouvList),
 test_mouv_possible(Board, Player, MouvList, MouvementDirections),
 
@@ -117,15 +118,20 @@ placePiece(Board, Emplacement, NewBoard, Player) :- Board = NewBoard, nth1(Empla
 placePiece(Board, Emplacement, BoardFinal, Player) :- Board = NewBoard, not(nth1(Emplacement,NewBoard,Player)), 
 		replace(NewBoard, Emplacement, Player, BoardFinal) .
 
+%Replace le ieme element de la liste R
 replace([_|T], 1, X, [X|T]).
 replace([H|T], I, X, [H|R]):- I > 0, NI is I-1, replace(T, NI, X, R), !.
 replace(L, _, _, L).
 
+
+%Retourne les pieces a partir d'un emplacement dans les directions renseignees
 retournerPieces(Board, Emplacement, [], NewBoard,Player) :- Board=NewBoard, !.
 retournerPieces(Board, Emplacement, [Direction|Reste], NewBoard, Player) :- 
 	   retournerPiecesDirection(Board, Emplacement, Direction, BoardTemp, Player),
 	   retournerPieces(BoardTemp, Emplacement, Reste, NewBoard, Player).
 
+
+%Retourne les pieces a partir d'un emplacement dans une direction particuliere
 retournerPiecesDirection(Board, Emplacement, Direction, Board, Player):- Nemplacement is Emplacement+Direction, 
 	   nth1(Nemplacement, Board, Valeur), Valeur == Player, !.
 retournerPiecesDirection(Board, Emplacement, Direction, NewBoard, Player):- Nemplacement is Emplacement+Direction,
@@ -144,6 +150,7 @@ getPlayerType(Player, TabPlayerType, PlayerType) :- Player == 'o', nth1(4, TabPl
 changePlayer('x','o').
 changePlayer('o','x').
 
+%Convertit des coordonnees en un emplacement dans le tableau
 convertTab(Colonne, Ligne, Result) :- Result is ((Ligne-1)*8 + Colonne).
 
 %%%% Print the value of the board at index N:
@@ -180,6 +187,7 @@ menuJouerLigne :- writeln("Selectionner la ligne que vous souhaitez jouer").
 %%%%% Start the menu before playing
 start :- writeln("Bienvenue sur le jeu du Ohtello."), writeln("Selectionner le premier joueur, il jouera les x : ") , menuPlayer, read(Jx), writeln("Selectionner le deuxieme joueur, il jouera les o : "), menuPlayer, read(Jo), type_IA1(Jx, Jo, TypeJx, TypeJo), initBoard(TypeJx, TypeJo).
 
+%Permet la selection de l'heuristique 
 type_IA1(Jx, Jo, TypeJx, TypeJo) :- Jx == 2, writeln("Selectionnez le type d'heuristique a utiliser pour le joueur x :"), menuIA, read(TypeIA), TypeJx is TypeIA + 1, type_IA2(Jx, Jo, TypeJx, TypeJo).
 type_IA1(Jx, Jo, Jx, TypeJo) :- type_IA2(Jx, Jo, Jx, TypeJo).
 
