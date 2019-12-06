@@ -85,7 +85,7 @@ oppose(Player, Oppose) :- Player=='o',!, Oppose='x'.
 
 
 %H5 amélioration de H3 en priorisant les coups permettants de prendre un coin ou un bord, sans prendre un bord si l'adversaire peut prendre un coin ensuite.
-heuristique_max_jetons_retournes_coins_et_bords(Board, Player, CoupsPossibles, Move) :- writeln(CoupsPossibles), assert(meilleurMove(-404)), assert(compteurMove(-404)),
+heuristique_max_jetons_retournes_coins_et_bords(Board, Player, CoupsPossibles, Move) :- assert(meilleurMove(-404)), assert(compteurMove(-404)),
 parcourirMouvementsPossibles2(Board, Player, CoupsPossibles),
 retract(compteurMove(G)), retract(meilleurMove(X)), Move is X.
 
